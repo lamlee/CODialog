@@ -65,7 +65,7 @@ CODialogSynth(subtitleFont)
 CODialogSynth(highlightedIndex)
 
 + (instancetype)dialogWithWindow:(UIWindow *)hostWindow {
-  return [[self alloc] initWithWindow:hostWindow];
+  return [[[self alloc] initWithWindow:hostWindow] autorelease];
 }
 
 - (id)initWithWindow:(UIWindow *)hostWindow {
@@ -78,8 +78,12 @@ CODialogSynth(highlightedIndex)
     self.hostWindow = hostWindow;
     self.opaque = NO;
     self.alpha = 1.0;
-    self.buttons = [NSMutableArray new];
-    self.textFields = [NSMutableArray new];
+      NSMutableArray *ara = [[NSMutableArray alloc] init];
+      self.buttons = ara;
+      [ara release];
+      NSMutableArray *array = [[NSMutableArray alloc] init];
+      self.textFields = array;
+      [array release];
     
     // Register for keyboard notifications
     NSNotificationCenter *nc = [NSNotificationCenter defaultCenter];
@@ -91,6 +95,7 @@ CODialogSynth(highlightedIndex)
 
 - (void)dealloc {
   [[NSNotificationCenter defaultCenter] removeObserver:self];
+    [super dealloc];
 }
 
 - (void)adjustToKeyboardBounds:(CGRect)bounds {
@@ -150,12 +155,12 @@ CODialogSynth(highlightedIndex)
     UIActivityIndicatorView *activityView = [[UIActivityIndicatorView alloc] initWithActivityIndicatorStyle:UIActivityIndicatorViewStyleWhiteLarge];
     [activityView startAnimating];
     
-    return activityView;
+    return [activityView autorelease];
   } else if (self.dialogStyle == CODialogStyleDeterminate) {
     UIProgressView *progressView = [[UIProgressView alloc] initWithProgressViewStyle:UIProgressViewStyleBar];
     progressView.frame = CGRectMake(0, 0, 200.0, 88.0);
     
-    return progressView;
+    return [progressView autorelease];
   } else if (self.dialogStyle == CODialogStyleSuccess ||
              self.dialogStyle == CODialogStyleError) {
     CGSize iconSize = CGSizeMake(64, 64);
@@ -166,7 +171,7 @@ CODialogSynth(highlightedIndex)
     UIImageView *imageView = [[UIImageView alloc] initWithImage:UIGraphicsGetImageFromCurrentImageContext()];
     UIGraphicsEndImageContext();
     
-    return imageView;
+    return [imageView autorelease];
   } else if (self.dialogStyle == CODialogStyleCustomView) {
     return self.customView;
   }
@@ -316,11 +321,12 @@ CODialogSynth(highlightedIndex)
                        options:UIViewAnimationOptionTransitionCrossDissolve
                     completion:^(BOOL finished) {
                       self.contentView = newContentView;
+                        [newContentView release];
                     }];
   } else {
     self.contentView = newContentView;
     [self addSubview:newContentView];
-    
+      [newContentView release];
     // Don't animate frame adjust if there was no content before
     animationDuration = 0;
   }
@@ -410,12 +416,14 @@ CODialogSynth(highlightedIndex)
   
   // Create overlay
   if (show) {
-    self.overlay = overlay = [CODialogWindowOverlay new];
+      CODialogWindowOverlay *ol = [[CODialogWindowOverlay alloc] init];
+      self.overlay = overlay = ol;
     overlay.opaque = NO;
     overlay.windowLevel = UIWindowLevelStatusBar + 1;    
     overlay.dialog = self;
     overlay.frame = self.hostWindow.bounds;
     overlay.alpha = 0.0;
+      [ol release];
   }
   
   // Layout components
@@ -623,7 +631,7 @@ CODialogSynth(highlightedIndex)
                               CGPointMake(CGRectGetMidX(buttonFrame), CGRectGetMinY(buttonFrame)),
                               CGPointMake(CGRectGetMidX(buttonFrame), CGRectGetMaxY(buttonFrame)), 0);
   CGContextRestoreGState(ctx);
-  
+    CGGradientRelease(gradient);
   // Draw highlight or down state
   if (highlighted) {
     CGContextSaveGState(ctx);
